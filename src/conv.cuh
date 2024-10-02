@@ -1,12 +1,17 @@
 /**
  * @file conv.cuh
- * @author Alberto Morcillo Sanz (amorcillosanz@gmail.es)
- * @brief 2D convolution in CUDA
+ * @author Alberto Morcillo Sanz (amorcillosanz@gmail.com)
+ * @brief Provides implementations for 2D convolution operations using CUDA.
+ * 
+ * This header file defines the necessary structures and functions to perform 
+ * 2D discrete convolution on matrices utilizing CUDA for parallel processing.
+ * It includes a matrix class template for managing 2D data and functions for 
+ * performing convolution, error checking, and other related operations.
  * 
  * @version 0.1
  * @date 2024-10-02
  * 
- * @copyright Copyright (c) 2024
+ * @copyright Copyright (c) 2024 Alberto Morcillo Sanz. All rights reserved.
  */
 
 #pragma once
@@ -209,7 +214,7 @@ struct Matrix
     }
 };
 
-using Kernel = Matrix<int>;
+using Kernel = Matrix<float>;
 
 /**
  * @brief Checks for errors from previously executed CUDA functions and reports them.
