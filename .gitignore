@@ -5,3 +5,7 @@ test/test.lib
 test/output.png
 test/outputBoxBlur.png
 test/outputSharpen.png
+test/outputGaussianBlur.png
+test/outputSobelH.png
+test/outputSobelV.png
+test/outputLaplacian.png

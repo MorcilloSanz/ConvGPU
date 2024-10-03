@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
@@ -69,37 +70,16 @@ void applyFilter(const std::string& path, const std::string& output, const cnv::
 
     unsigned char* outputBuff = new unsigned char[width * height * 3];
 
-    int minR = 255, maxR = 0;
-    int minG = 255, maxG = 0;
-    int minB = 255, maxB = 0;
-
-    for(int i = 0; i < width; i ++) {
-        for(int j = 0; j < height; j ++) {
+    for (int i = 0; i < width; i++) {
+        for (int j = 0; j < height; j++) {
 
             int r = outputR.get(i, j);
             int g = outputG.get(i, j);
             int b = outputB.get(i, j);
 
-            if(r > maxR) maxR = r;
-            else if(r < minR) minR = r;
-
-            if(g > maxG) maxG = g;
-            else if(g < minG) minG = g;
-
-            if(b > maxB) maxB = b;
-            else if(b < minB) minB = b;
-        }
-    }
-
-    int incrementR = maxR - minR;
-    int incrementG = maxG - minG;
-    int incrementB = maxB - minB;
-
-    for(int i = 0; i < width; i ++) {
-        for(int j = 0; j < height; j ++) {
-            outputBuff[3 * (i + j * width)] =     static_cast<unsigned char>(255 * (outputR.get(i, j) - minR) / incrementR);
-            outputBuff[3 * (i + j * width) + 1] = static_cast<unsigned char>(255 * (outputG.get(i, j) - minG) / incrementG);
-            outputBuff[3 * (i + j * width) + 2] = static_cast<unsigned char>(255 * (outputB.get(i, j) - minB) / incrementB);
+            outputBuff[3 * (i + j * width)] = static_cast<unsigned char>(std::clamp(r, 0, 255));
+            outputBuff[3 * (i + j * width) + 1] = static_cast<unsigned char>(std::clamp(g, 0, 255));
+            outputBuff[3 * (i + j * width) + 2] = static_cast<unsigned char>(std::clamp(b, 0, 255));
         }
     }
 
@@ -119,6 +99,14 @@ int main() {
 
     applyFilter("res/orloj.png", "outputBoxBlur.png", filterBoxBlur);
 
+    cnv::Kernel filterLaplacian = {
+        {  0, -1,  0 },
+        { -1,  4,  0 },
+        {  0, -1,  0 }
+    };
+
+    applyFilter("res/orloj.png", "outputLaplacian.png", filterLaplacian);
+
     cnv::Kernel filterSharpen = {
         {  0, -1,  0 },
         { -1,  5,  0 },
@@ -126,6 +114,30 @@ int main() {
     };
 
     applyFilter("res/orloj.png", "outputSharpen.png", filterSharpen);
+
+    cnv::Kernel filterGaussian = {
+        { 1.f / 16, 2.f / 16, 1.f / 16 },
+        { 2.f / 16, 4.f / 16, 2.f / 16 },
+        { 1.f / 16, 2.f / 16, 1.f / 16 }
+    };
+
+    applyFilter("res/orloj.png", "outputGaussianBlur.png", filterGaussian);
+
+    cnv::Kernel filterSobelH = {
+        { -1, 0, 1},
+        { -2, 0, 2},
+        { -1, 0, 1}
+    };
+
+    applyFilter("res/orloj.png", "outputSobelH.png", filterSobelH);
+
+    cnv::Kernel filterSobelV = {
+        { 1 , 2 , 1 },
+        { 0 , 0 , 0 },
+        { -1, -2, -1}
+    };
+
+    applyFilter("res/orloj.png", "outputSobelV.png", filterSobelV);
 
     return 0;
 }
