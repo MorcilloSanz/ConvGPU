@@ -33,6 +33,9 @@ namespace cnv
  * It supports construction from dimensions, an initializer list, 
  * copy/move operations, and printing.
  * 
+ * As this structure is intended to work mainly with images, the matrices 
+ * are of the type (columns, rows) instead of (rows, columns).
+ * 
  * @tparam T Type of elements stored in the matrix.
  */
 template <typename T>
@@ -44,24 +47,24 @@ struct Matrix
     T* data;
 
     /**
-     * @brief Number of rows in the matrix.
-     */
-    unsigned int rows;
-
-    /**
      * @brief Number of columns in the matrix.
      */
     unsigned int cols;
 
     /**
+     * @brief Number of rows in the matrix.
+     */
+    unsigned int rows;
+
+    /**
      * @brief Constructs a matrix with specified rows and columns.
      * 
-     * @param _rows Number of rows.
      * @param _cols Number of columns.
+     * @param _rows Number of rows.
      */
-    Matrix(unsigned int _rows, unsigned int _cols)
+    Matrix(unsigned int _cols, unsigned int _rows)
         : rows(_rows), cols(_cols) {
-        data = new T[rows * cols];
+        data = new T[cols * rows];
     }
 
     /**
@@ -72,8 +75,8 @@ struct Matrix
      * @param matrix The matrix to copy from.
      */
     Matrix(const Matrix& matrix)
-        : rows(matrix.rows), cols(matrix.cols) {
-        data = new T[rows * cols];
+        : cols(matrix.cols), rows(matrix.rows) {
+        data = new T[cols * rows];
         std::copy(matrix.data, matrix.data + rows * cols, data);
     }
 
@@ -86,7 +89,7 @@ struct Matrix
      * @param matrix The matrix to move from.
      */
     Matrix(Matrix&& matrix) noexcept
-        : data(matrix.data), rows(matrix.rows), cols(matrix.cols) {
+        : data(matrix.data), cols(matrix.cols), rows(matrix.rows) {
         matrix.data = nullptr;
     }
 
@@ -118,9 +121,9 @@ struct Matrix
 
         if (this != &matrix) {
             delete[] data;
-            rows = matrix.rows;
             cols = matrix.cols;
-            data = new T[rows * cols];
+            rows = matrix.rows;
+            data = new T[cols * rows];
             std::copy(matrix.data, matrix.data + rows * cols, data);
         }
 
@@ -140,8 +143,8 @@ struct Matrix
         if (this != &matrix) {
             delete[] data;
             data = matrix.data;
-            rows = matrix.rows;
             cols = matrix.cols;
+            rows = matrix.rows;
             matrix.data = nullptr;
         }
 
@@ -156,9 +159,9 @@ struct Matrix
      */
     Matrix(const std::initializer_list<std::initializer_list<T>>& list) {
 
-        rows = list.size();
         cols = list.begin()->size();
-        data = new T[rows * cols];
+        rows = list.size();
+        data = new T[cols * rows];
 
         unsigned int i = 0;
         for(const auto& row : list) {
@@ -177,8 +180,8 @@ struct Matrix
      * @brief Sets the value of an element in the matrix.
      * 
      * @param value The value to set.
-     * @param i Row index.
-     * @param j Column index.
+     * @param i Column index.
+     * @param j Row index.
      */
     inline void set(const T& value, unsigned int i, unsigned int j) {
         data[i + j * cols] = value;
@@ -187,8 +190,8 @@ struct Matrix
     /**
      * @brief Gets the value of an element in the matrix.
      * 
-     * @param i Row index.
-     * @param j Column index.
+     * @param i Column index.
+     * @param j Row index.
      * @return The value at the specified row and column.
      */
     inline T get(unsigned int i, unsigned int j) const {
@@ -214,7 +217,8 @@ struct Matrix
     }
 };
 
-using Kernel = Matrix<float>;
+using KernelType = float;
+using Kernel = Matrix<KernelType>;
 
 /**
  * @brief Checks for errors from previously executed CUDA functions and reports them.
@@ -252,7 +256,7 @@ void check_cuda_error(const char* message) {
  * @param kernelHeight Height of the kernel matrix (number of rows).
  */
 template <typename T>
-__global__ void kernel_conv2D(T* input, T* output, T* kernel, unsigned int width, 
+__global__ void kernel_conv2D(T* input, T* output, KernelType* kernel, unsigned int width, 
     unsigned int height, unsigned int kernelWidth, unsigned int kernelHeight) {
 
     int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -275,7 +279,7 @@ __global__ void kernel_conv2D(T* input, T* output, T* kernel, unsigned int width
             if(xi < width && xi >= 0 && yj < height && yj >= 0)
                 value = input[xi + yj * width];
 
-            sum += value * kernel[(i + kx) + (j + ky) * kernelHeight];
+            sum += static_cast<T>(value * kernel[(i + kx) + (j + ky) * kernelWidth]);
         }
     }
 
@@ -297,14 +301,18 @@ __global__ void kernel_conv2D(T* input, T* output, T* kernel, unsigned int width
 template <typename T>
 void conv2D(const Matrix<T>& input, Matrix<T>& output, const Kernel& kernel) {
 
+    T *d_input, *d_output;
+    KernelType* d_kernel;
+
     const unsigned int width = input.cols;
     const unsigned int height = input.rows;
+    
+    size_t size = width * height * sizeof(T);
+
     const unsigned int kernelWidth = kernel.cols;
     const unsigned int kernelHeight = kernel.rows;
 
-    T *d_input, *d_output, *d_kernel;
-    T size = width * height * sizeof(T);
-    T sizeKernel = kernelWidth * kernelHeight * sizeof(int);
+    size_t sizeKernel = kernelWidth * kernelHeight * sizeof(KernelType);
 
     // Reserve memory
     cudaMalloc((void **)&d_input, size);

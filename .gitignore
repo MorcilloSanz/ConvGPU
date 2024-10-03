@@ -1,2 +1,5 @@
 .vscode
-test/test
+test/test.exe
+test/test.exp
+test/test.lib
+output.png
