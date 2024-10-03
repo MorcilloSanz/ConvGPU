@@ -21,8 +21,8 @@ void applyFilter(const std::string& path, const std::string& output, const cnv::
 ### Original
 ![](img/original.png)
 
-## Box blur
-![](img/boxblur.png)
+## Laplacian
+![](img/laplacian.png)
 
 ### Sharpen filter
 ![](img/sharpen.png)
