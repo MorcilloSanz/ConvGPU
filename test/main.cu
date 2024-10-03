@@ -124,9 +124,9 @@ int main() {
     applyFilter("res/orloj.png", "outputGaussianBlur.png", filterGaussian);
 
     cnv::Kernel filterSobelH = {
-        { -1, 0, 1},
-        { -2, 0, 2},
-        { -1, 0, 1}
+        { -1, 0, 1 },
+        { -2, 0, 2 },
+        { -1, 0, 1 }
     };
 
     applyFilter("res/orloj.png", "outputSobelH.png", filterSobelH);
@@ -134,7 +134,7 @@ int main() {
     cnv::Kernel filterSobelV = {
         { 1 , 2 , 1 },
         { 0 , 0 , 0 },
-        { -1, -2, -1}
+        {-1, -2, -1 }
     };
 
     applyFilter("res/orloj.png", "outputSobelV.png", filterSobelV);
