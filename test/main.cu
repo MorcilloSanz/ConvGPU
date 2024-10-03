@@ -7,8 +7,15 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "vendor/stb_image_write.h"
 
-#include "../src/conv.cuh"
+#include <conv.cuh>
 
+/**
+ * @brief Tests the 2D convolution function with a sample input matrix and kernel.
+ *
+ * This function creates a sample 5x5 input matrix and a Laplacian kernel,
+ * then performs a 2D convolution on the input matrix with the given kernel.
+ * The input matrix, kernel, and output matrix are printed to the console.
+ */
 void testConvolution() {
 
     cnv::Matrix<int> input = {
@@ -35,6 +42,23 @@ void testConvolution() {
     std::cout << "Output matrix\n" << output << std::endl;
 }
 
+/**
+ * @brief Applies a 2D convolution filter to an image and saves the result.
+ *
+ * This function loads an image from the specified path, separates the RGB channels,
+ * applies the given convolution kernel to each channel, and then writes the filtered
+ * image to the output path.
+ *
+ * @param path The file path to the input image.
+ * @param output The file path where the filtered image will be saved.
+ * @param kernel The convolution kernel to be applied to the image.
+ *
+ * The function performs the following steps:
+ * - Loads the input image and converts it to RGB format.
+ * - Separates the RGB channels into individual matrices.
+ * - Applies the given convolution kernel to each RGB channel separately.
+ * - Combines the filtered RGB channels and writes the output to a file.
+ */
 void applyFilter(const std::string& path, const std::string& output, const cnv::Kernel& kernel) {
 
     int width, height, bpp;
