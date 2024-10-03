@@ -97,7 +97,8 @@ int main() {
         { 1.0/9, 1.0/9, 1.0/9 }
     };
 
-    applyFilter("res/orloj.png", "outputBoxBlur.png", filterBoxBlur);
+    std::cout << "Appying box blur filter" << std::endl;
+    applyFilter("res/orloj.png", "boxblur.png", filterBoxBlur);
 
     cnv::Kernel filterLaplacian = {
         {  0, -1,  0 },
@@ -105,7 +106,8 @@ int main() {
         {  0, -1,  0 }
     };
 
-    applyFilter("res/orloj.png", "outputLaplacian.png", filterLaplacian);
+    std::cout << "Appying laplacian filter" << std::endl;
+    applyFilter("res/orloj.png", "laplacian.png", filterLaplacian);
 
     cnv::Kernel filterSharpen = {
         {  0, -1,  0 },
@@ -113,7 +115,8 @@ int main() {
         {  0, -1,  0 }
     };
 
-    applyFilter("res/orloj.png", "outputSharpen.png", filterSharpen);
+    std::cout << "Appying sharpen filter" << std::endl;
+    applyFilter("res/orloj.png", "sharpen.png", filterSharpen);
 
     cnv::Kernel filterGaussian = {
         { 1.f / 16, 2.f / 16, 1.f / 16 },
@@ -121,7 +124,8 @@ int main() {
         { 1.f / 16, 2.f / 16, 1.f / 16 }
     };
 
-    applyFilter("res/orloj.png", "outputGaussianBlur.png", filterGaussian);
+    std::cout << "Appying gaussian blur filter" << std::endl;
+    applyFilter("res/orloj.png", "gaussianblur.png", filterGaussian);
 
     cnv::Kernel filterSobelH = {
         { -1, 0, 1 },
@@ -129,7 +133,8 @@ int main() {
         { -1, 0, 1 }
     };
 
-    applyFilter("res/orloj.png", "outputSobelH.png", filterSobelH);
+    std::cout << "Appying horizontal sobel filter" << std::endl;
+    applyFilter("res/orloj.png", "sobelh.png", filterSobelH);
 
     cnv::Kernel filterSobelV = {
         { 1 , 2 , 1 },
@@ -137,7 +142,8 @@ int main() {
         {-1, -2, -1 }
     };
 
-    applyFilter("res/orloj.png", "outputSobelV.png", filterSobelV);
+    std::cout << "Appying vertical sobel filter" << std::endl;
+    applyFilter("res/orloj.png", "sobelv.png", filterSobelV);
 
     return 0;
 }
