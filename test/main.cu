@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstdlib>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "vendor/stb_image.h"
@@ -35,64 +34,98 @@ void testConvolution() {
     std::cout << "Output matrix\n" << output << std::endl;
 }
 
-void applyFilter(const std::string& path, const cnv::Kernel& kernel) {
+void applyFilter(const std::string& path, const std::string& output, const cnv::Kernel& kernel) {
 
     int width, height, bpp;
     unsigned char* buff = stbi_load(path.c_str(), &width, &height, &bpp, STBI_rgb_alpha);
 
-    cnv::Matrix<unsigned char> R(width, height);
-    cnv::Matrix<unsigned char> G(width, height);
-    cnv::Matrix<unsigned char> B(width, height);
+    cnv::Matrix<int> R(width, height);
+    cnv::Matrix<int> G(width, height);
+    cnv::Matrix<int> B(width, height);
 
     for(int i = 0; i < width; i ++) {
         for(int j = 0; j < height; j ++) {
 
             unsigned char r = buff[4 * (i + j * width)];
-            R.set(r, i, j);
+            R.set(static_cast<int>(r), i, j);
 
             unsigned char g = buff[4 * (i + j * width) + 1];
-            G.set(g, i, j);
+            G.set(static_cast<int>(g), i, j);
 
             unsigned char b = buff[4 * (i + j * width) + 2];
-            B.set(b, i, j);
+            B.set(static_cast<int>(b), i, j);
         }
     }
 
     stbi_image_free(buff);
 
-    cnv::Matrix<unsigned char> outputR(width, height);
-    cnv::Matrix<unsigned char> outputG(width, height);
-    cnv::Matrix<unsigned char> outputB(width, height);
+    cnv::Matrix<int> outputR(width, height);
+    cnv::Matrix<int> outputG(width, height);
+    cnv::Matrix<int> outputB(width, height);
 
     conv2D(R, outputR, kernel);
     conv2D(G, outputG, kernel);
     conv2D(B, outputB, kernel);
 
-    unsigned char* outputBuff = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
+    unsigned char* outputBuff = new unsigned char[width * height * 3];
+
+    int minR = 255, maxR = 0;
+    int minG = 255, maxG = 0;
+    int minB = 255, maxB = 0;
 
     for(int i = 0; i < width; i ++) {
         for(int j = 0; j < height; j ++) {
-            outputBuff[3 * (i + j * width)] = outputR.get(i, j);
-            outputBuff[3 * (i + j * width) + 1] = outputG.get(i, j);
-            outputBuff[3 * (i + j * width) + 2] = outputB.get(i, j);
+
+            int r = outputR.get(i, j);
+            int g = outputG.get(i, j);
+            int b = outputB.get(i, j);
+
+            if(r > maxR) maxR = r;
+            else if(r < minR) minR = r;
+
+            if(g > maxG) maxG = g;
+            else if(g < minG) minG = g;
+
+            if(b > maxB) maxB = b;
+            else if(b < minB) minB = b;
         }
     }
 
-    stbi_write_png("output.png", width, height, STBI_rgb, outputBuff, width * STBI_rgb);
-    free(outputBuff);
+    int incrementR = maxR - minR;
+    int incrementG = maxG - minG;
+    int incrementB = maxB - minB;
+
+    for(int i = 0; i < width; i ++) {
+        for(int j = 0; j < height; j ++) {
+            outputBuff[3 * (i + j * width)] =     static_cast<unsigned char>(255 * (outputR.get(i, j) - minR) / incrementR);
+            outputBuff[3 * (i + j * width) + 1] = static_cast<unsigned char>(255 * (outputG.get(i, j) - minG) / incrementG);
+            outputBuff[3 * (i + j * width) + 2] = static_cast<unsigned char>(255 * (outputB.get(i, j) - minB) / incrementB);
+        }
+    }
+
+    stbi_write_png(output.c_str(), width, height, STBI_rgb, outputBuff, width * STBI_rgb);
+    delete[] outputBuff;
 }
 
 int main() {
 
     testConvolution();
 
-    cnv::Kernel filter = {
-        { 0.f,  -1.f,  0.f },
-        { -1.f,  5.f, -1.f },
-        { 0.f,  -1.f,  0.f }
+    cnv::Kernel filterBoxBlur = {
+        { 1.0/9, 1.0/9, 1.0/9 },
+        { 1.0/9, 1.0/9, 1.0/9 },
+        { 1.0/9, 1.0/9, 1.0/9 }
     };
 
-    applyFilter("res/orloj.png", filter);
+    applyFilter("res/orloj.png", "outputBoxBlur.png", filterBoxBlur);
+
+    cnv::Kernel filterSharpen = {
+        {  0, -1,  0 },
+        { -1,  5,  0 },
+        {  0, -1,  0 }
+    };
+
+    applyFilter("res/orloj.png", "outputSharpen.png", filterSharpen);
 
     return 0;
 }

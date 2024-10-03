@@ -319,7 +319,7 @@ void conv2D(const Matrix<T>& input, Matrix<T>& output, const Kernel& kernel) {
     check_cuda_error("cudaMalloc d_input");
 
     cudaMalloc((void **)&d_output, size);
-    check_cuda_error("cudaMalloc d_input");
+    check_cuda_error("cudaMalloc d_output");
 
     cudaMalloc((void **)&d_kernel, sizeKernel);
     check_cuda_error("cudaMalloc d_kernel");
